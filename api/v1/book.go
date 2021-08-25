@@ -13,7 +13,6 @@ import (
 //新增图书
 func AddBook(c*gin.Context){
 	var u models.Book
-	c.ShouldBindJSON(&u)
 	u.BookName=c.PostForm("bookname")
 	u.BookType=c.PostForm("booktype")
 	u.Sum,_=strconv.Atoi(c.PostForm("sum"))
@@ -24,7 +23,7 @@ func AddBook(c*gin.Context){
 		c.FormFile("imag")
 		time_int:=time.Now().Unix()
 		time_str:=strconv.FormatInt(time_int,10)
-		filename:=time_str+file.Filename
+		filename:=time_str+u.BookName
 		dst:=path.Join("./statics/image/bookimage",filename)
 		//获取存储路径
 		u.BookImag=dst
@@ -93,18 +92,20 @@ func GetBook(c*gin.Context){
 	c.JSON(http.StatusOK,gin.H{
 		"status":"成功",
 		"data":cate,
-		"message":nil,
+		"num": len(cate),
+		"pagesize":pagesize,
+		"pagenum":pagenum,
 	})
 }
-
-//查询特定图书
-
 
 //编辑图书资料
 func EditBook(c*gin.Context){
 	var u models.Book
 	id,_:=strconv.Atoi(c.Param("id"))
-	c.ShouldBind(&u)
+	u.BookName=c.PostForm("bookname")
+	u.BookType=c.PostForm("booktype")
+	u.Sum,_=strconv.Atoi(c.PostForm("sum"))
+	//c.ShouldBind(&u)
 	file,e:=c.FormFile("imag")
 	if e!=nil{
 		fmt.Println(e)
@@ -112,7 +113,7 @@ func EditBook(c*gin.Context){
 		c.FormFile("imag")
 		time_int:=time.Now().Unix()
 		time_str:=strconv.FormatInt(time_int,10)
-		filename:=time_str+file.Filename
+		filename:=time_str+u.BookName
 		dst:=path.Join("./statics/image/bookimage",filename)
 		//获取存储路径
 		u.BookImag=dst
@@ -130,5 +131,5 @@ func EditBook(c*gin.Context){
 		"message":"编辑成功",
 	})
 }
-//查询用户已借图书
+
 

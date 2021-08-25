@@ -17,6 +17,7 @@ BookImag string `json:"imag" form:"imag"`
 BookType string`json:"booktype" form:"booktype"`
 State string `json:"state" gorm:"default:'no'"`
 Sum int `json:"sum" form;"sum"`
+BorrowSum int`json:"borrowsum"`
 Users []User`gorm:"many2many:user_book"`
 }
 //新增书籍
@@ -84,14 +85,9 @@ func DeleteBook(id int)int{
 }
 //编辑书籍
 func EditBook(id int,u *Book){
-	var maps=make(map[string]interface{})
 	var book Book
-	maps["book_name"]=u.BookName
-	maps["book_price"]=u.BookPrice
-	maps["book_imag"]=u.BookImag
-	maps["book_type"]=u.BookType
 	//maps["state"]=u.State
-	err:=DB.Model(&book).Where("id = ?",id).Update(maps).Error
+	err:=DB.Model(&book).Where("id = ?",id).Updates(Book{BookName: u.BookName,Sum: u.Sum,BookImag: u.BookImag,BookType: u.BookType}).Error
 	if err!=nil{
 		log.Fatal(err)
 	}

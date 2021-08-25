@@ -14,6 +14,24 @@ type User struct{
 	gorm.Model
 	Username string`json:"username" form:"username"`
 	Password string`json:"password" form:"password"`
+	RealName string `json:"realname" form:"realname"`
+	RemainSum int	`json:"remainsum" form:"remainsum"`
+	Role int`json:"role"`
+	//0为超级管理员，1为管理员，2为普通用户
+	Head string`json:"head" form:"head"`
+	//头像
+	Phone string`json:"phone" form:"phone"`
+	Email string`json:"email" form:"email"`
+	Books []Book`json:"books" gorm:"many2many:user_book"`
+	BookSum int`json:"booksum"`
+
+
+}
+type UserMsg struct{
+	Username string`json:"username" form:"username"`
+	//Password string`json:"password" form:"password"`
+	RealName string `json:"realname" form:"realname"`
+	RemainSum int	`json:"remainsum" form:"remainsum"`
 	Role int`json:"role"`
 	//0为超级管理员，1为管理员，2为普通用户
 	Head string`json:"head" form:"head"`
@@ -22,21 +40,59 @@ type User struct{
 	Email string`json:"email" form:"email"`
 	Books []Book`json:"books" gorm"many2many:user_book"`
 	BookSum int`json:"booksum"`
+	Id uint `json:"id"`
 }
-//登陆验证
-func CheckLogin(username string,password string)error{
+func TakeUserMsg(user User )UserMsg{
+	var msg UserMsg
+	msg.Role=user.Role
+	msg.Phone=user.Phone
+	msg.Email=user.Email
+	msg.Username=user.Username
+	msg.RealName=user.RealName
+	msg.Books=user.Books
+	msg.BookSum=user.BookSum
+	return msg
+}
+func TakeUsesrMsg(user []User )[]UserMsg{
+	var msg []UserMsg
+	for i:=0;i< len(user);i++{
+		msg[i].Role= user[i].Role
+		msg[i].Phone=user[i].Phone
+		msg[i].Email=user[i].Email
+		msg[i].Username=user[i].Username
+		msg[i].RealName=user[i].RealName
+		msg[i].Books=user[i].Books
+		msg[i].BookSum=user[i].BookSum
+	}
+
+	return msg
+}
+//验证管理员权限
+func CheckAdmin(username string)int{
 	var user User
 	err:=DB.Where("username = ?",username).First(&user).Error
 	//log.Fatal(user)
 	fmt.Println(user)
 	if err!=nil{
-		return err
+		fmt.Println("权限验证错误",err)
+		return -1
+	}
+	return user.Role
+}
+//登陆验证
+func CheckLogin(username string,password string)(User,error){
+	var user User
+	err:=DB.Where("username = ?",username).First(&user).Error
+	//log.Fatal(user)
+	fmt.Println(user)
+	if err!=nil{
+		return User{},err
 	}
 	if ScryptPW(password)!=user.Password{
 		err=errors.New("密码错误")
-		return err
+		return User{},err
 	}
-	return nil
+	return user,nil
 }
 //获取用户信息
 func GetUser(name string)( User ,error){
@@ -100,7 +156,7 @@ func DeleteUser(id int)int{
 	return ID
 }
 //编辑用户信息
-func EditUser(id int,u *User){
+func EditUser(id int,u *User)User{
 	var maps=make(map[string]interface{})
 	var user User
 	maps["username"]=u.Username
@@ -111,6 +167,7 @@ func EditUser(id int,u *User){
 	if err!=nil{
 		log.Fatal(err)
 	}
+	return user
 }
 //增加管理员
 func AddAdmin(id int,u*User)error{
@@ -140,21 +197,79 @@ func DeleteAdmin(id int,u*User)error{
 //获取管理员列表
 func GteAdmins(PageSize int,Pagenum int)[]User{
 	var users []User
-	err:=DB.Limit(PageSize).Offset((Pagenum-1)*PageSize).Where("role = ?",0).Or("role = ?",1).Find(&users).Error
+	err:=DB.Limit(PageSize).Offset((Pagenum-1)*PageSize).Where("role = ?",1).Find(&users).Error
 	if err!=nil{
 		return nil
 	}
 	return users
 }
 //查询用户所借书籍
-func Borrowedbooks(){
-
+func Borrowedbooks(PageSize int,Pagenum int,username string)[]Book{
+	var u User
+	var books []Book
+	//u.Username=username
+	DB.Where("username = ?",username).First(&u)
+	err:=DB.Debug().Limit(PageSize).Offset((Pagenum-1)*PageSize).Model(&u).Association("Books").Find(&books).Error
+	if err!=nil{
+		fmt.Println(err.Error())
+	}
+	return books
 }
 //用户借书
-func Borrowbook(){
+func Borrowbook(username string,bookname int)(Book,error){
+	var u User
+	var b Book
+	DB.Where("username = ?",username).First(&u)
+	fmt.Println(u)
+	DB.Debug().Where("id = ?",bookname).First(&b)
+	fmt.Println(b)
+	//fmt.Println(b.Sum,u.Books)
+	if b.Sum>0{
+		//u.Books=append(u.Books,b)
+		u.BookSum++
+		err=DB.Debug().Model(&u).Association("Books").Append(&b).Error
+		if err!=nil{
+			fmt.Println(err.Error())
+			return Book{},nil
+		}
+		fmt.Println(u.Books)
+		b.Sum--
+		//b.BorrowSum++
+		err=DB.Model(&b).Update("sum",b.Sum).Error
+		if err!=nil{
+			fmt.Println(err.Error())
+		}
+		return b,err
+	}else{
+		fmt.Println("余量不足")
+		return Book{},errors.New("余量不足")
+	}
 
 }
 //用户还书
-func ReturnBook(){
+func ReturnBook(username string,bookname int)(Book,error){
+	var u User
+	var b Book
+	DB.Where("username = ?",username).First(&u)
+	fmt.Println(u)
+	DB.Debug().Where("id = ?",bookname).First(&b)
+	fmt.Println(b)
+	//fmt.Println(b.Sum,u.Books)
+
+		//u.Books=append(u.Books,b)
+		u.BookSum++
+		err=DB.Debug().Model(&u).Association("Books").Delete(&b).Error
+		if err!=nil{
+			fmt.Println(err.Error())
+			return Book{},nil
+		}
+		fmt.Println(u.Books)
+		b.Sum++
+		//b.BorrowSum++
+		err=DB.Model(&b).Update("sum",b.Sum).Error
+		if err!=nil{
+			fmt.Println(err.Error())
+		}
+		return b,err
 
 }

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"bookmanager/models"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -149,6 +150,35 @@ func JwtAuth() gin.HandlerFunc {
 		//	"err":err,
 		//})
 		c.Set("username", token.Username)
+		c.Next()
+	}
+}
+
+//管理员权限中间件
+func AdminAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		authString := c.Request.Header.Get("Authorization")
+
+		kv := strings.Split(authString, " ")
+		if len(kv) != 2 || kv[0] != "Bearer" {
+			//result := models.UnauthorizedResult()
+			//c.JSON(200, result)
+			c.Abort()
+			return
+		}
+		tokenString := kv[1]
+		// Parse token
+		token, _:= ParseJwt(tokenString)
+		role:=models.CheckAdmin(token.Username)
+		if role>1{
+			c.JSON(http.StatusOK,gin.H{
+				"status":"错误",
+				"message":"无权限",
+			})
+			c.Abort()
+			return
+		}
 		c.Next()
 	}
 }

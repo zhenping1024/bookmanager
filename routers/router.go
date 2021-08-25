@@ -15,23 +15,24 @@ func InitRouter(){
 	{
 		//用户模块模块
 		router.PUT("user/:id",v1.EditUser)
-		router.DELETE("user/:id",v1.DeleteUser)
+		router.DELETE("user/:id",middleware.AdminAuth(),v1.DeleteUser)
 		router.GET("user/books",v1.Getborrow)
-		router.GET("user/book/borrow/:id",v1.BorrowBook)
-		router.GET("user/book/return/:id",v1.ReturnBook)
+		router.POST("user/book/borrow/:id",v1.BorrowBook)
+		router.POST("user/book/return/:id",v1.ReturnBook)
 
 		//分类模块模块
 		router.POST("category/add",v1.AddCategory)
 		router.PUT("category/:id",v1.EditCategory)
 		router.DELETE("category/:id",v1.DeleteCategory)
 		//普通管理员模块
-		router.POST("book/add",v1.AddBook)
-		router.PUT("book/:id",v1.EditBook)
-		router.PUT("book/:id/up",v1.Upbook)
-		router.PUT("book/:id/down",v1.Downbook)
-		router.DELETE("book/:id",v1.DeleteBook)
-		router.PUT("admin/add/:id",v1.AddAdmin)
-		router.PUT("admin/delete/:id",v1.DeleteAdmin)
+		router.POST("book/add",middleware.AdminAuth(),v1.AddBook)
+		router.PUT("book/:id",middleware.AdminAuth(),v1.EditBook)
+		router.PUT("book/:id/up",middleware.AdminAuth(),v1.Upbook)
+		router.PUT("book/:id/down",middleware.AdminAuth(),v1.Downbook)
+		router.DELETE("book/:id",middleware.AdminAuth(),v1.DeleteBook)
+		router.PUT("admin/add/:id",middleware.AdminAuth(),v1.AddAdmin)
+		router.PUT("admin/creat",middleware.AdminAuth(),v1.CreatAdmin)
+		router.PUT("admin/delete/:id",middleware.AdminAuth(),v1.DeleteAdmin)
 	}
 	router2 :=r.Group("api/v1")
 	{
