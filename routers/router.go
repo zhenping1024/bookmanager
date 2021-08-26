@@ -33,8 +33,9 @@ func InitRouter(){
 		router.PUT("admin/creat",middleware.AdminAuth(),v1.CreatAdmin)
 		router.PUT("admin/delete/:id",middleware.AdminAuth(),v1.DeleteAdmin)
 		//搜索模块
-
 		router.POST("user/book/search",v1.SearchUserBook)
+		//评论
+		router.POST("comment/:bookid",v1.SendComment)
 	}
 	router2 :=r.Group("api/v1")
 	{
@@ -49,6 +50,7 @@ func InitRouter(){
 		router2.GET("books",v1.GetBooks)
 		router2.GET("book/id",v1.GetBook)
 		router2.POST("login",v1.Login)
+		router2.GET("comment/:bookid",v1.GetComment)
 	}
 	r.Run(utils.HttpPort)
 }

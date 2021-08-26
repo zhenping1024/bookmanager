@@ -1,12 +1,14 @@
 package v1
 
 import (
+	"bookmanager/middleware"
 	"bookmanager/models"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -144,5 +146,40 @@ func EditBook(c*gin.Context){
 		"message":"编辑成功",
 	})
 }
-
+//发表评论
+func SendComment(c*gin.Context){
+	var comment models.Comment
+	authString := c.Request.Header.Get("Authorization")
+	kv := strings.Split(authString, " ")
+	tokenString := kv[1]
+	token, err := middleware.ParseJwt(tokenString)
+	if err!=nil{
+		fmt.Println(err)
+	}
+	bookid,_:=strconv.Atoi(c.Param("bookid"))
+	context:=c.PostForm("comment")
+	comment.Commentuser=token.Username
+	comment.Context=context
+	comment.UpdatedAt=time.Now()
+	comment.ID=uint(bookid)
+	fmt.Println(comment)
+	comment,err=models.PublishComment(bookid,comment)
+	c.JSON(http.StatusOK,gin.H{
+		"status":fmt.Sprint(err),
+		"data":comment,
+	})
+}
+//显示评论
+func GetComment(c*gin.Context){
+	bookid,_:=strconv.Atoi(c.Param("bookid"))
+	pagesize,_:=strconv.Atoi(c.Query("pagesize"))
+	pagenum,_:=strconv.Atoi(c.Query("pagenum"))
+	fmt.Println("bookid",bookid)
+	comments,err,sum:=models.GetComment(bookid,pagesize,pagenum)
+	c.JSON(http.StatusOK,gin.H{
+		"status":fmt.Sprint(err),
+		"data":comments,
+		"sum":sum,
+	})
+}
 
