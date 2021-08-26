@@ -35,7 +35,7 @@ func AddBook(c*gin.Context){
 		fmt.Println("save",u)
 		fmt.Println("上传成功")
 	}
-
+		u.BorrowSum=0
 		models.CreatBook(&u)
 		c.JSON(http.StatusOK,gin.H{
 			"status":"创建成功",
@@ -79,7 +79,7 @@ func DeleteBook(c*gin.Context){
 	})
 }
 //查询图书列表
-func GetBook(c*gin.Context){
+func GetBooks(c*gin.Context){
 	pagesize,_:=strconv.Atoi(c.Query("pagesize"))
 	pagenum,_:=strconv.Atoi(c.Query("pagenum"))
 	if pagesize==0{
@@ -88,16 +88,25 @@ func GetBook(c*gin.Context){
 	if pagenum == 0{
 		pagenum =-1
 	}
-	cate:=models.GetBooks(pagesize,pagenum)
+	cate,sum:=models.GetBooks(pagesize,pagenum)
 	c.JSON(http.StatusOK,gin.H{
 		"status":"成功",
 		"data":cate,
-		"num": len(cate),
+		"num": sum,
 		"pagesize":pagesize,
 		"pagenum":pagenum,
 	})
 }
-
+//查询单一书籍
+func GetBook(c*gin.Context){
+	var u models.Book
+	id,_:=strconv.Atoi(c.Param("id"))
+	u=models.GetBookInfo(id)
+	c.JSON(http.StatusOK,gin.H{
+		"status":u,
+		"message":"获取成功",
+	})
+}
 //编辑图书资料
 func EditBook(c*gin.Context){
 	var u models.Book
@@ -108,6 +117,10 @@ func EditBook(c*gin.Context){
 	//c.ShouldBind(&u)
 	file,e:=c.FormFile("imag")
 	if e!=nil{
+		c.JSON(http.StatusOK,gin.H{
+			"status":e,
+			"message":"图片上传错误",
+		})
 		fmt.Println(e)
 	}else{
 		c.FormFile("imag")

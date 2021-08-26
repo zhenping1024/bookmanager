@@ -19,7 +19,6 @@ func InitRouter(){
 		router.GET("user/books",v1.Getborrow)
 		router.POST("user/book/borrow/:id",v1.BorrowBook)
 		router.POST("user/book/return/:id",v1.ReturnBook)
-
 		//分类模块模块
 		router.POST("category/add",v1.AddCategory)
 		router.PUT("category/:id",v1.EditCategory)
@@ -33,15 +32,22 @@ func InitRouter(){
 		router.PUT("admin/add/:id",middleware.AdminAuth(),v1.AddAdmin)
 		router.PUT("admin/creat",middleware.AdminAuth(),v1.CreatAdmin)
 		router.PUT("admin/delete/:id",middleware.AdminAuth(),v1.DeleteAdmin)
+		//搜索模块
+
+		router.POST("user/book/search",v1.SearchUserBook)
 	}
 	router2 :=r.Group("api/v1")
 	{
+		router2.POST("user/search",v1.SearchUser)
+		router2.POST("book/search",v1.SearchBook)
+		router2.POST("admin/search",v1.SearchAdmin)
 		router2.POST("user/add",v1.AddUser)
 		router2.GET("/users",v1.GetUsers)
 		router.GET("user",v1.GetUser)
 		router2.GET("/admins",v1.GetAdmins)
 		router2.GET("/category",v1.GetCategory)
-		router2.GET("books",v1.GetBook)
+		router2.GET("books",v1.GetBooks)
+		router2.GET("book/id",v1.GetBook)
 		router2.POST("login",v1.Login)
 	}
 	r.Run(utils.HttpPort)

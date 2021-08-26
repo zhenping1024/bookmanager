@@ -24,7 +24,7 @@ type User struct{
 	Email string`json:"email" form:"email"`
 	Books []Book`json:"books" gorm:"many2many:user_book"`
 	BookSum int`json:"booksum"`
-
+	Introduce string `json:"introduce" json:"introduce"`
 
 }
 type UserMsg struct{
@@ -41,6 +41,7 @@ type UserMsg struct{
 	Books []Book`json:"books" gorm"many2many:user_book"`
 	BookSum int`json:"booksum"`
 	Id uint `json:"id"`
+	Introduce string `json:"introduce" json:"introduce"`
 }
 func TakeUserMsg(user User )UserMsg{
 	var msg UserMsg
@@ -51,6 +52,7 @@ func TakeUserMsg(user User )UserMsg{
 	msg.RealName=user.RealName
 	msg.Books=user.Books
 	msg.BookSum=user.BookSum
+	msg.Introduce=user.Introduce
 	return msg
 }
 func TakeUsesrMsg(user []User )[]UserMsg{
@@ -124,13 +126,39 @@ func CreatUser(data *User)error{
 	return nil
 }
 //查询用户列表
-func GteUsers(PageSize int,Pagenum int)[]User{
+func GteUsers(PageSize int,Pagenum int)([]User,int){
 	var users []User
-	err:=DB.Limit(PageSize).Offset((Pagenum-1)*PageSize).Find(&users).Error
+	var sum int
+	err:=DB.Limit(PageSize).Offset((Pagenum-1)*PageSize).Where("role = ?",2).Find(&users).Count(&sum).Error
+	fmt.Println("一共有",sum)
 	if err!=nil{
-		return nil
+		return nil,-1
 	}
-	return users
+	return users, sum
+}
+//搜索用户
+func SearchU(username string,pagesize int,pagenum int)([]User,error,int){
+	var u []User
+	var sum int
+	username="%"+username+"%"
+	err:=DB.Limit(pagesize).Offset((pagenum-1)*pagesize).Where("role = ? AND username LIKE ?",2,username).Find(&u).Count(&sum).Error
+	if err!=nil{
+		fmt.Println(err)
+		return []User{},err,0
+	}
+	return u,err,sum
+}
+//搜索管理员
+func SearchA(username string,pagesize int,pagenum int)([]User,error,int){
+	var u []User
+	var sum int
+	username="%"+username+"%"
+	err:=DB.Limit(pagesize).Offset((pagenum-1)*pagesize).Where("role = ? AND username LIKE ?",1,username).Find(&u).Count(&sum).Error
+	if err!=nil{
+		fmt.Println(err)
+		return []User{},err,0
+	}
+	return u,err,sum
 }
 //密码加密
 func ScryptPW(password string)string{
@@ -157,13 +185,15 @@ func DeleteUser(id int)int{
 }
 //编辑用户信息
 func EditUser(id int,u *User)User{
-	var maps=make(map[string]interface{})
 	var user User
-	maps["username"]=u.Username
-	maps["phone"]=u.Phone
-	maps["email"]=u.Email
-	maps["head"]=u.Head
-	err:=DB.Model(&user).Where("id = ?",id).Update(maps).Error
+	err:=DB.Model(&user).Where("id = ?",id).Updates(User{
+		Introduce: u.Introduce,
+		Username: u.Username,
+		RealName: u.RealName,
+		Phone: u.Phone,
+		Email: u.Email,
+		Head: u.Head,
+	}).Error
 	if err!=nil{
 		log.Fatal(err)
 	}
@@ -181,7 +211,6 @@ func AddAdmin(id int,u*User)error{
 	}
 	return err
 }
-
 //解除管理员
 func DeleteAdmin(id int,u*User)error{
 	var maps=make(map[string]interface{})
@@ -195,16 +224,17 @@ func DeleteAdmin(id int,u*User)error{
 	return err
 }
 //获取管理员列表
-func GteAdmins(PageSize int,Pagenum int)[]User{
+func GteAdmins(PageSize int,Pagenum int)([]User,int){
 	var users []User
-	err:=DB.Limit(PageSize).Offset((Pagenum-1)*PageSize).Where("role = ?",1).Find(&users).Error
+	var sum int
+	err:=DB.Limit(PageSize).Offset((Pagenum-1)*PageSize).Where("role = ?",1).Find(&users).Count(&sum).Error
 	if err!=nil{
-		return nil
+		return nil,-1
 	}
-	return users
+	return users, sum
 }
 //查询用户所借书籍
-func Borrowedbooks(PageSize int,Pagenum int,username string)[]Book{
+func Borrowedbooks(PageSize int,Pagenum int,username string)([]Book,int){
 	var u User
 	var books []Book
 	//u.Username=username
@@ -213,7 +243,9 @@ func Borrowedbooks(PageSize int,Pagenum int,username string)[]Book{
 	if err!=nil{
 		fmt.Println(err.Error())
 	}
-	return books
+	tmpb:=books
+	sum:=DB.Model(&u).Association("Books").Find(&tmpb).Count()
+	return books,sum
 }
 //用户借书
 func Borrowbook(username string,bookname int)(Book,error){
@@ -226,14 +258,16 @@ func Borrowbook(username string,bookname int)(Book,error){
 	//fmt.Println(b.Sum,u.Books)
 	if b.Sum>0{
 		//u.Books=append(u.Books,b)
-		u.BookSum++
+		//u.BookSum++
 		err=DB.Debug().Model(&u).Association("Books").Append(&b).Error
 		if err!=nil{
 			fmt.Println(err.Error())
 			return Book{},nil
 		}
-		fmt.Println(u.Books)
+		DB.Model(&u).Update("book_sum",u.BookSum+1)
+		fmt.Println(u)
 		b.Sum--
+		b.BorrowSum++
 		//b.BorrowSum++
 		err=DB.Model(&b).Update("sum",b.Sum).Error
 		if err!=nil{
@@ -257,15 +291,16 @@ func ReturnBook(username string,bookname int)(Book,error){
 	//fmt.Println(b.Sum,u.Books)
 
 		//u.Books=append(u.Books,b)
-		u.BookSum++
+		//u.BookSum++
 		err=DB.Debug().Model(&u).Association("Books").Delete(&b).Error
 		if err!=nil{
 			fmt.Println(err.Error())
 			return Book{},nil
 		}
+	     DB.Model(&u).Update("book_sum",u.BookSum-1)
 		fmt.Println(u.Books)
 		b.Sum++
-		//b.BorrowSum++
+		b.BorrowSum--
 		err=DB.Model(&b).Update("sum",b.Sum).Error
 		if err!=nil{
 			fmt.Println(err.Error())

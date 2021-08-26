@@ -18,7 +18,6 @@ func GetUser( c *gin.Context){
 	authString := c.Request.Header.Get("Authorization")
 	kv := strings.Split(authString, " ")
 	tokenString := kv[1]
-
 	// Parse token
 	token, err := middleware.ParseJwt(tokenString)
 	if err!=nil{
@@ -30,7 +29,6 @@ func GetUser( c *gin.Context){
 		"data":models.TakeUserMsg(u),
 	})
 }
-
 //添加用户
 func AddUser(c*gin.Context){
 	var u models.User
@@ -59,8 +57,6 @@ func AddUser(c*gin.Context){
 	}
 
 }
-
-
 //查询用户列表
 func GetUsers(c*gin.Context){
 	pagesize,_:=strconv.Atoi(c.Query("pagesize"))
@@ -71,16 +67,15 @@ func GetUsers(c*gin.Context){
 	if pagenum == 0{
 		pagenum =-1
 	}
-	users:=models.GteUsers(pagesize,pagenum)
+	users,sum:=models.GteUsers(pagesize,pagenum)
 	c.JSON(http.StatusOK,gin.H{
 		"status":"成功",
 		"data":users,
 		"pagesize":pagesize,
 		"pagenum":pagenum,
-		"num": len(users),
+		"num": sum,
 	})
 }
-
 //编辑用户资料
 func EditUser(c*gin.Context){
 	var u models.User
@@ -89,14 +84,25 @@ func EditUser(c*gin.Context){
 	u.Username=c.PostForm("username")
 	u.Email=c.PostForm("email")
 	u.Phone=c.PostForm("phone")
+	u.RealName=c.PostForm("realname")
+	u.Introduce=c.PostForm("introduce")
 	//c.ShouldBind(&u)
-	err:=models.CheckUser(u.Username)
+	er:=models.CheckUser(u.Username)
+	if er!=nil{
+		c.JSON(200,gin.H{
+			"err":er,
+			"message":"用户名重复",
+		})
+		return
+	}
 	file,e:=c.FormFile("imag")
 	if e!=nil{
 		//c.JSON(200,gin.H{
-		//	"err":e.Error(),
+		//	"err":e,
+		//	"message":"图片上传错误",
 		//})
 		fmt.Println(e)
+
 	}else{
 		c.FormFile("imag")
 		time_int:=time.Now().Unix()
@@ -118,10 +124,9 @@ func EditUser(c*gin.Context){
 		u=models.EditUser(id,&u)
 	c.JSON(http.StatusOK,gin.H{
 		"status":models.TakeUserMsg(u),
-		"message":err,
+		"message":nil,
 	})
 }
-
 //删除用户
 func DeleteUser(c*gin.Context){
 	id,_:=strconv.Atoi(c.Param("id"))
@@ -237,11 +242,11 @@ func GetAdmins(c*gin.Context){
 	if pagenum == 0{
 		pagenum =-1
 	}
-	users:=models.GteAdmins(pagesize,pagenum)
+	users,sum:=models.GteAdmins(pagesize,pagenum)
 	c.JSON(http.StatusOK,gin.H{
 		"status":"成功",
 		"data":users,
-		"num": len(users),
+		"num": sum,
 		"pagesize":pagesize,
 		"pagenum":pagenum,
 	})
@@ -265,11 +270,11 @@ func Getborrow(c*gin.Context){
 	if pagenum == 0{
 		pagenum =-1
 	}
-	books:=models.Borrowedbooks(pagesize,pagenum,token.Username)
+	sum,books:=models.Borrowedbooks(pagesize,pagenum,token.Username)
 	c.JSON(http.StatusOK,gin.H{
 		"status":"成功",
 		"data":books,
-		"num": len(books),
+		"num": sum,
 		"pagesize":pagesize,
 		"pagenum":pagenum,
 	})
@@ -308,5 +313,91 @@ func ReturnBook(c*gin.Context){
 	c.JSON(http.StatusOK,gin.H{
 		"status":e,
 		"data":b,
+	})
+}
+//搜索普通用户
+func SearchUser(c*gin.Context){
+	pagesize,_:=strconv.Atoi(c.Query("pagesize"))
+	pagenum,_:=strconv.Atoi(c.Query("pagenum"))
+	if pagesize==0{
+		pagesize = -1
+	}
+	if pagenum == 0{
+		pagenum =-1
+	}
+
+	username:=c.Query("username")
+	u,err,sum:=models.SearchU(username,pagesize,pagenum)
+	c.JSON(http.StatusOK,gin.H{
+		"status":fmt.Sprint(err),
+		"data":u,
+		"datasum": sum,
+	})
+}
+//搜索普通管理员
+func SearchAdmin(c*gin.Context){
+
+	pagesize,_:=strconv.Atoi(c.Query("pagesize"))
+	pagenum,_:=strconv.Atoi(c.Query("pagenum"))
+	if pagesize==0{
+		pagesize = -1
+	}
+	if pagenum == 0{
+		pagenum =-1
+	}
+	username:=c.Query("username")
+	u,err,sum:=models.SearchA(username,pagesize,pagenum)
+	c.JSON(http.StatusOK,gin.H{
+		"status":fmt.Sprint(err),
+		"data":u,
+		"datasum": sum,
+	})
+}
+//书名搜索书籍
+func SearchBook(c*gin.Context){
+	pagesize,_:=strconv.Atoi(c.Query("pagesize"))
+	pagenum,_:=strconv.Atoi(c.Query("pagenum"))
+	if pagesize==0{
+		pagesize = -1
+	}
+	if pagenum == 0{
+		pagenum =-1
+	}
+
+	bookname:=c.Query("bookname")
+	fmt.Println(bookname)
+	u,err,sum:=models.SearchBook(bookname,pagesize,pagenum)
+	c.JSON(http.StatusOK,gin.H{
+		"status":fmt.Sprint(err),
+		"data":u,
+		"datasum": sum,
+	})
+}
+//书名搜索已借书籍
+func SearchUserBook(c*gin.Context){
+	pagesize,_:=strconv.Atoi(c.Query("pagesize"))
+	pagenum,_:=strconv.Atoi(c.Query("pagenum"))
+	if pagesize==0{
+		pagesize = -1
+	}
+	if pagenum == 0{
+		pagenum =-1
+	}
+
+	bookname:=c.Query("bookname")
+	authString := c.Request.Header.Get("Authorization")
+	kv := strings.Split(authString, " ")
+	tokenString := kv[1]
+
+	// Parse token
+	token, err := middleware.ParseJwt(tokenString)
+	if err!=nil{
+		fmt.Println(err)
+	}
+	u,err,sum:=models.SearchBorrowedBook(token.Username,bookname,pagesize,pagenum)
+	c.JSON(http.StatusOK,gin.H{
+		"status":fmt.Sprint(err),
+		"data":u,
+		"datasum": sum,
 	})
 }

@@ -133,22 +133,6 @@ func JwtAuth() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		//if !token.Valid {
-		//	result := models.UnauthorizedResult()
-		//	c.JSON(200, result)
-		//	c.Abort()
-		//	return
-		//}
-		//claims, ok := token.Claims.(*MyCustomClaims)
-		//
-		//if !ok {
-		//	c.JSON(403, result)
-		//	c.Abort()
-		//	return
-		//}
-		//c.JSON(http.StatusOK,gin.H{
-		//	"err":err,
-		//})
 		c.Set("username", token.Username)
 		c.Next()
 	}
@@ -163,7 +147,10 @@ func AdminAuth() gin.HandlerFunc {
 		kv := strings.Split(authString, " ")
 		if len(kv) != 2 || kv[0] != "Bearer" {
 			//result := models.UnauthorizedResult()
-			//c.JSON(200, result)
+			c.JSON(200, gin.H{
+				"status":"错误",
+				"message":"Token错误",
+			})
 			c.Abort()
 			return
 		}

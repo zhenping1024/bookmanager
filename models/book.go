@@ -57,20 +57,21 @@ func GetCateBook(id string,pagesize int,pagenum int)[]Book{
 //查询单一书籍
 func GetBookInfo (id int)Book{
 	var book Book
-	err:=DB.Preload("Category").Where("cid = ?").First(&book).Error
+	err:=DB.Where("id = ?",id).First(&book).Error
 	if err!=nil{
 		return Book{}
 	}
 	return book
 }
 //查询书籍列表
-func GetBooks(PageSize int,Pagenum int)([]Book){
+func GetBooks(PageSize int,Pagenum int)([]Book,int){
 	var book []Book
-	err:=DB.Limit(PageSize).Offset((Pagenum-1)*PageSize).Find(&book).Error
+	var sum int
+	err:=DB.Limit(PageSize).Offset((Pagenum-1)*PageSize).Find(&book).Count(&sum).Error
 	if err!=nil{
-		return nil
+		return nil,-1
 	}
-	return book
+	return book, sum
 }
 //删除分类
 func DeleteBook(id int)int{
@@ -87,8 +88,37 @@ func DeleteBook(id int)int{
 func EditBook(id int,u *Book){
 	var book Book
 	//maps["state"]=u.State
-	err:=DB.Model(&book).Where("id = ?",id).Updates(Book{BookName: u.BookName,Sum: u.Sum,BookImag: u.BookImag,BookType: u.BookType}).Error
+	err:=DB.Model(&book).Where("id = ?",id).Updates(Book{
+		BookName: u.BookName,
+		Sum: u.Sum,
+		BookImag: u.BookImag,
+		BookType: u.BookType}).Error
 	if err!=nil{
 		log.Fatal(err)
 	}
+}
+//书名搜索书籍
+func SearchBook(bookname string,pagesize int,pagenum int)([]Book,error,int){
+	var u []Book
+	bookname="%"+bookname+"%"
+	var sum int
+	fmt.Println(bookname)
+	err:=DB.Limit(pagesize).Offset((pagenum-1)*pagesize).Where("book_name LIKE ?",bookname).Find(&u).Count(&sum).Error
+	fmt.Println("一共有",sum)
+	if err!=nil{
+		fmt.Println(err)
+		return []Book{},err,0
+	}
+	return u,err,sum
+}
+//书名搜索用户已借阅
+func SearchBorrowedBook(username string,bookname string,pagesize int,pagenum int)([]Book,error,int){
+	var u User
+	var books []Book
+	var sum int
+	bookname="%"+bookname+"%"
+	DB.Where("username = ?",username).First(&u)
+	sum=DB.Limit(pagesize).Offset((pagenum-1)*pagesize).Debug().Model(&u).Preload("Books").Where("book_name LIKE ?",bookname).Association("Books").Find(&books).Count()
+	fmt.Println("chadao",sum)
+	return books,err,sum
 }
