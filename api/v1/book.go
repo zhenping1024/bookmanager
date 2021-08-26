@@ -17,6 +17,8 @@ func AddBook(c*gin.Context){
 	var u models.Book
 	u.BookName=c.PostForm("bookname")
 	u.BookType=c.PostForm("booktype")
+	u.Author=c.PostForm("author")
+	u.Introduce=c.PostForm("introduce")
 	u.Sum,_=strconv.Atoi(c.PostForm("sum"))
 	file,e:=c.FormFile("imag")
 	if e!=nil{
@@ -115,6 +117,8 @@ func EditBook(c*gin.Context){
 	id,_:=strconv.Atoi(c.Param("id"))
 	u.BookName=c.PostForm("bookname")
 	u.BookType=c.PostForm("booktype")
+	u.Author=c.PostForm("author")
+	u.Introduce=c.PostForm("introduce")
 	u.Sum,_=strconv.Atoi(c.PostForm("sum"))
 	//c.ShouldBind(&u)
 	file,e:=c.FormFile("imag")
