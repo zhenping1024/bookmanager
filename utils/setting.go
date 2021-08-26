@@ -15,7 +15,7 @@ var (
 	DbUser     string
 	DbPassWord string
 	DbName     string
-
+	RedisAddr  string
 	//AccessKey  string
 	//SecretKey  string
 	//Bucket     string
@@ -45,6 +45,7 @@ func LoadData(file *ini.File) {
 	DbUser = file.Section("database").Key("DbUser").MustString("ginblog")
 	DbPassWord = file.Section("database").Key("DbPassWord").MustString("admin123")
 	DbName = file.Section("database").Key("DbName").MustString("ginblog")
+	RedisAddr=file.Section("redis").Key("Addr").MustString("localhost:6379")
 }
 
 //func LoadQiniu(file *ini.File) {
