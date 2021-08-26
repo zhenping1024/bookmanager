@@ -67,7 +67,8 @@ func GetBookInfo (id int)Book{
 func GetBooks(PageSize int,Pagenum int)([]Book,int){
 	var book []Book
 	var sum int
-	err:=DB.Limit(PageSize).Offset((Pagenum-1)*PageSize).Find(&book).Count(&sum).Error
+	DB.Find(&book).Count(&sum)
+	err:=DB.Limit(PageSize).Offset((Pagenum-1)*PageSize).Find(&book).Error
 	if err!=nil{
 		return nil,-1
 	}
@@ -103,7 +104,8 @@ func SearchBook(bookname string,pagesize int,pagenum int)([]Book,error,int){
 	bookname="%"+bookname+"%"
 	var sum int
 	fmt.Println(bookname)
-	err:=DB.Limit(pagesize).Offset((pagenum-1)*pagesize).Where("book_name LIKE ?",bookname).Find(&u).Count(&sum).Error
+	DB.Where("book_name LIKE ?",bookname).Find(&u).Count(&sum)
+	err:=DB.Limit(pagesize).Offset((pagenum-1)*pagesize).Where("book_name LIKE ?",bookname).Find(&u).Error
 	fmt.Println("一共有",sum)
 	if err!=nil{
 		fmt.Println(err)
@@ -118,7 +120,8 @@ func SearchBorrowedBook(username string,bookname string,pagesize int,pagenum int
 	var sum int
 	bookname="%"+bookname+"%"
 	DB.Where("username = ?",username).First(&u)
-	sum=DB.Limit(pagesize).Offset((pagenum-1)*pagesize).Debug().Model(&u).Preload("Books").Where("book_name LIKE ?",bookname).Association("Books").Find(&books).Count()
+	sum=DB.Model(&u).Preload("Books").Where("book_name LIKE ?",bookname).Association("Books").Find(&books).Count()
+	DB.Limit(pagesize).Offset((pagenum-1)*pagesize).Debug().Model(&u).Preload("Books").Where("book_name LIKE ?",bookname).Association("Books").Find(&books)
 	fmt.Println("chadao",sum)
 	return books,err,sum
 }

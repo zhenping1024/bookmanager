@@ -129,7 +129,8 @@ func CreatUser(data *User)error{
 func GteUsers(PageSize int,Pagenum int)([]User,int){
 	var users []User
 	var sum int
-	err:=DB.Limit(PageSize).Offset((Pagenum-1)*PageSize).Where("role = ?",2).Find(&users).Count(&sum).Error
+	DB.Where("role = ?",2).Find(&users).Count(&sum)
+	err:=DB.Limit(PageSize).Offset((Pagenum-1)*PageSize).Where("role = ?",2).Find(&users).Error
 	fmt.Println("一共有",sum)
 	if err!=nil{
 		return nil,-1
@@ -227,8 +228,10 @@ func DeleteAdmin(id int,u*User)error{
 func GteAdmins(PageSize int,Pagenum int)([]User,int){
 	var users []User
 	var sum int
-	err:=DB.Limit(PageSize).Offset((Pagenum-1)*PageSize).Where("role = ?",1).Find(&users).Count(&sum).Error
+	DB.Where("role = ?",1).Find(&users).Count(&sum)
+	err:=DB.Limit(PageSize).Offset((Pagenum-1)*PageSize).Where("role = ?",1).Find(&users).Error
 	if err!=nil{
+		fmt.Println(err)
 		return nil,-1
 	}
 	return users, sum
