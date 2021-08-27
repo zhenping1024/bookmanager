@@ -81,7 +81,7 @@ func EditUser(c*gin.Context){
 	var u models.User
 	var dst string
 	id,_:=strconv.Atoi(c.Param("id"))
-	u.Username=c.PostForm("username")
+	//u.Username=c.PostForm("username")
 	u.Email=c.PostForm("email")
 	u.Phone=c.PostForm("phone")
 	u.RealName=c.PostForm("realname")
@@ -293,7 +293,7 @@ func BorrowBook(c*gin.Context){
 	token, _ := middleware.ParseJwt(tokenString)
 	b,e:=models.Borrowbook(token.Username,id)
 	c.JSON(http.StatusOK,gin.H{
-		"status":e,
+		"status":fmt.Sprint(e),
 		"data":b,
 	})
 }

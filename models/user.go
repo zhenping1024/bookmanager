@@ -258,29 +258,34 @@ func Borrowbook(username string,bookname int)(Book,error){
 	fmt.Println(u)
 	DB.Debug().Where("id = ?",bookname).First(&b)
 	fmt.Println(b)
-	//fmt.Println(b.Sum,u.Books)
-	if b.Sum>0{
-		//u.Books=append(u.Books,b)
-		//u.BookSum++
-		err=DB.Debug().Model(&u).Association("Books").Append(&b).Error
-		if err!=nil{
-			fmt.Println(err.Error())
-			return Book{},nil
-		}
-		DB.Model(&u).Update("book_sum",u.BookSum+1)
-		fmt.Println(u)
-		b.Sum--
-		b.BorrowSum++
-		//b.BorrowSum++
-		err=DB.Model(&b).Update("sum",b.Sum).Error
-		if err!=nil{
-			fmt.Println(err.Error())
-		}
-		return b,err
+	status,_:=CheckBorrowed(u,b)
+	if status==1{
+		return Book{},errors.New("该书正在借阅")
 	}else{
-		fmt.Println("余量不足")
-		return Book{},errors.New("余量不足")
+		if b.Sum>0{
+			//u.Books=append(u.Books,b)
+			//u.BookSum++
+			err=DB.Debug().Model(&u).Association("Books").Append(&b).Error
+			if err!=nil{
+				fmt.Println(err.Error())
+				return Book{},nil
+			}
+			DB.Model(&u).Update("book_sum",u.BookSum+1)
+			fmt.Println(u)
+			b.Sum--
+			b.BorrowSum++
+			//b.BorrowSum++
+			err=DB.Model(&b).Updates(Book{Sum: b.Sum,BorrowSum: b.BorrowSum}).Error
+			if err!=nil{
+				fmt.Println(err.Error())
+			}
+			return b,err
+		}else{
+			fmt.Println("余量不足")
+			return Book{},errors.New("余量不足")
+		}
 	}
+
 
 }
 //用户还书
@@ -291,10 +296,6 @@ func ReturnBook(username string,bookname int)(Book,error){
 	fmt.Println(u)
 	DB.Debug().Where("id = ?",bookname).First(&b)
 	fmt.Println(b)
-	//fmt.Println(b.Sum,u.Books)
-
-		//u.Books=append(u.Books,b)
-		//u.BookSum++
 		err=DB.Debug().Model(&u).Association("Books").Delete(&b).Error
 		if err!=nil{
 			fmt.Println(err.Error())
@@ -310,4 +311,15 @@ func ReturnBook(username string,bookname int)(Book,error){
 		}
 		return b,err
 
+}
+func CheckBorrowed(u User,b Book)(int,error){
+	var books []Book
+	err=DB.Debug().Model(&u).Association("Books").Find(&books).Error
+	fmt.Println("checkborrow",err)
+	for i:=0;i< len(books);i++{
+		if b.ID==books[i].ID{
+			return 1,err
+		}
+	}
+	return 0,err
 }
