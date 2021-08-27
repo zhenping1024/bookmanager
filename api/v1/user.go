@@ -26,7 +26,7 @@ func GetUser( c *gin.Context){
 	u,e:=models.GetUser(token.Username)
 	c.JSON(http.StatusOK,gin.H{
 		"status":e,
-		"data":models.TakeUserMsg(u),
+		"data":u,
 	})
 }
 //添加用户
@@ -121,7 +121,7 @@ func EditUser(c*gin.Context){
 		fmt.Println("上传成功")
 	}
 	fmt.Println(u.Head,u)
-		u=models.EditUser(id,&u)
+	u=models.EditUser(id,&u)
 	c.JSON(http.StatusOK,gin.H{
 		"status":models.TakeUserMsg(u),
 		"message":nil,
@@ -399,5 +399,11 @@ func SearchUserBook(c*gin.Context){
 		"status":fmt.Sprint(err),
 		"data":u,
 		"datasum": sum,
+	})
+}
+//管理员接受消息
+func GetMsg(c*gin.Context){
+	c.JSON(http.StatusOK,gin.H{
+		"message":models.Msgs,
 	})
 }

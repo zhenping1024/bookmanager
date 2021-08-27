@@ -52,6 +52,7 @@ func InitRouter(){
 		router2.GET("book/id",v1.GetBook)
 		router2.POST("login",v1.Login)
 		router2.GET("comment/:bookid",v1.GetComment)
+		router2.GET("admin/msg",v1.GetMsg)
 	}
 	r.Run(utils.HttpPort)
 }

@@ -9,4 +9,7 @@ func main(){
 	models.InitDb()
 	models.InitClient()
 	routers.InitRouter()
+	go func() {
+		models.GetMsg()
+	}()
 }

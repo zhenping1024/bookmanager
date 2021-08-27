@@ -53,6 +53,9 @@ func TakeUserMsg(user User )UserMsg{
 	msg.Books=user.Books
 	msg.BookSum=user.BookSum
 	msg.Introduce=user.Introduce
+	msg.RemainSum= user.RemainSum
+	msg.Id=user.ID
+	msg.Head=user.Head
 	return msg
 }
 func TakeUsesrMsg(user []User )[]UserMsg{
@@ -187,16 +190,16 @@ func DeleteUser(id int)int{
 //编辑用户信息
 func EditUser(id int,u *User)User{
 	var user User
-	err:=DB.Model(&user).Where("id = ?",id).Updates(User{
+	err:=DB.Debug().Model(&user).Where("id = ?",id).Updates(User{
 		Introduce: u.Introduce,
-		Username: u.Username,
 		RealName: u.RealName,
 		Phone: u.Phone,
 		Email: u.Email,
 		Head: u.Head,
 	}).Error
+	fmt.Sprint("cuowu",err)
 	if err!=nil{
-		log.Fatal(err)
+		fmt.Sprint(err)
 	}
 	return user
 }
@@ -263,22 +266,25 @@ func Borrowbook(username string,bookname int)(Book,error){
 		return Book{},errors.New("该书正在借阅")
 	}else{
 		if b.Sum>0{
-			//u.Books=append(u.Books,b)
-			//u.BookSum++
-			err=DB.Debug().Model(&u).Association("Books").Append(&b).Error
+			err=DB.Model(&u).Association("Books").Append(&b).Error
 			if err!=nil{
 				fmt.Println(err.Error())
 				return Book{},nil
 			}
 			DB.Model(&u).Update("book_sum",u.BookSum+1)
-			fmt.Println(u)
-			b.Sum--
-			b.BorrowSum++
+			//fmt.Println(u)
+			//b.Sum--
 			//b.BorrowSum++
-			err=DB.Model(&b).Updates(Book{Sum: b.Sum,BorrowSum: b.BorrowSum}).Error
+			err=DB.Model(&b).Select("sum","borrow_sum").Updates(map[string]interface{}{
+				"sum":b.Sum-1,
+				"borrow_sum":b.BorrowSum+1,
+			}).Error
 			if err!=nil{
 				fmt.Println(err.Error())
 			}
+			msg:="借阅了"+b.BookName+"bookid:"+strconv.Itoa(int(b.ID))
+			fmt.Println(msg)
+			PubilishMsg(u.Username,msg)
 			return b,err
 		}else{
 			fmt.Println("余量不足")
@@ -301,20 +307,23 @@ func ReturnBook(username string,bookname int)(Book,error){
 			fmt.Println(err.Error())
 			return Book{},nil
 		}
-	     DB.Model(&u).Update("book_sum",u.BookSum-1)
+	     DB.Model(&u).Select("book_sum").Updates(map[string]interface{}{"book_sum":u.BookSum-1})
 		fmt.Println(u.Books)
-		b.Sum++
-		b.BorrowSum--
-		err=DB.Model(&b).Update("sum",b.Sum).Error
+		err=DB.Model(&b).Select("sum","borrow_sum").Updates(map[string]interface{}{
+			"sum":b.Sum+1,
+			"borrow_sum":b.BorrowSum-1,
+		}).Error
 		if err!=nil{
 			fmt.Println(err.Error())
 		}
+	msg:="还了"+b.BookName+"bookid:"+strconv.Itoa(int(b.ID))
+	PubilishMsg(u.Username,msg)
 		return b,err
 
 }
 func CheckBorrowed(u User,b Book)(int,error){
 	var books []Book
-	err=DB.Debug().Model(&u).Association("Books").Find(&books).Error
+	err=DB.Model(&u).Association("Books").Find(&books).Error
 	fmt.Println("checkborrow",err)
 	for i:=0;i< len(books);i++{
 		if b.ID==books[i].ID{
