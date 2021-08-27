@@ -24,10 +24,10 @@ func GetMsg() {
 	pubsub := Rdb.Subscribe("Admin")
 	defer pubsub.Close()
 	for msg := range pubsub.Channel() {
-		fmt.Printf("channel=%s message=%s\n", msg.Channel, msg.Payload)
+		fmt.Printf("channel=%s message=%s\n,%s", msg.Channel, msg.Payload,msg.Pattern)
 		var data Msg
-		json.Unmarshal([]byte(msg.String()),data)
+		json.Unmarshal([]byte(msg.Payload),&data)
 		Msgs = append(Msgs, data)
-		fmt.Println(Msgs,"msgs")
+		fmt.Println(data,"msgs")
 	}
 }

@@ -3,6 +3,7 @@ package routers
 import (
 	v1 "bookmanager/api/v1"
 	"bookmanager/middleware"
+	"bookmanager/models"
 	"bookmanager/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -54,5 +55,8 @@ func InitRouter(){
 		router2.GET("comment/:bookid",v1.GetComment)
 		router2.GET("admin/msg",v1.GetMsg)
 	}
+	go func() {
+		models.GetMsg()
+	}()
 	r.Run(utils.HttpPort)
 }
