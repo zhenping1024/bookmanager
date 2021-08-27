@@ -403,7 +403,39 @@ func SearchUserBook(c*gin.Context){
 }
 //管理员接受消息
 func GetMsg(c*gin.Context){
+	fmt.Println(models.Ms.Sum, len(models.Ms.M))
+	if models.Ms.Sum< len(models.Ms.M){
+		models.Ms.Sum= len(models.Ms.M)
+		c.JSON(http.StatusOK,gin.H{
+			"message":models.Ms.M,
+			"status":1,
+		})
+	}else{
+		c.JSON(http.StatusOK,gin.H{
+			"message":models.Ms.M,
+			"status":0,
+		})
+	}
+
+}
+//置信管理员
+func ToAdmin(c*gin.Context){
+	var msg models.Msg
+	authString := c.Request.Header.Get("Authorization")
+	kv := strings.Split(authString, " ")
+	tokenString := kv[1]
+	token, err := middleware.ParseJwt(tokenString)
+	if err!=nil{
+		fmt.Println(err)
+	}
+
+	context:=c.PostForm("comment")
+	msg.MsgUser=token.Username
+	msg.MsgContext=context
+	msg.Creattime=time.Now()
+	models.ToAdmin(msg)
 	c.JSON(http.StatusOK,gin.H{
-		"message":models.Msgs,
+		"status":fmt.Sprint(err),
+		"data":msg,
 	})
 }

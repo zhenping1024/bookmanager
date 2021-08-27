@@ -37,6 +37,7 @@ func InitRouter(){
 		router.POST("user/book/search",v1.SearchUserBook)
 		//评论
 		router.POST("comment/:bookid",v1.SendComment)
+		router.POST("toadmin",v1.ToAdmin)
 	}
 	router2 :=r.Group("api/v1")
 	{
