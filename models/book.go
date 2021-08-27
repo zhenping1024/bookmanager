@@ -76,6 +76,17 @@ func GetBooks(PageSize int,Pagenum int)([]Book,int){
 	}
 	return book, sum
 }
+//查询上架书籍列表
+func GetUpBooks(PageSize int,Pagenum int)([]Book,int){
+	var book []Book
+	var sum int
+	DB.Find(&book).Where("state = ?","yes").Count(&sum)
+	err:=DB.Limit(PageSize).Offset((Pagenum-1)*PageSize).Where("state = ?","yes").Find(&book).Error
+	if err!=nil{
+		return nil,-1
+	}
+	return book, sum
+}
 //删除分类
 func DeleteBook(id int)int{
 	var book Book

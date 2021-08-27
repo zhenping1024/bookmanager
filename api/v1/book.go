@@ -101,6 +101,25 @@ func GetBooks(c*gin.Context){
 		"pagenum":pagenum,
 	})
 }
+//用户获取以上架图书
+func GetUpbooks(c*gin.Context){
+	pagesize,_:=strconv.Atoi(c.Query("pagesize"))
+	pagenum,_:=strconv.Atoi(c.Query("pagenum"))
+	if pagesize==0{
+		pagesize = -1
+	}
+	if pagenum == 0{
+		pagenum =-1
+	}
+	cate,sum:=models.GetUpBooks(pagesize,pagenum)
+	c.JSON(http.StatusOK,gin.H{
+		"status":"成功",
+		"data":cate,
+		"num": sum,
+		"pagesize":pagesize,
+		"pagenum":pagenum,
+	})
+}
 //查询单一书籍
 func GetBook(c*gin.Context){
 	var u models.Book

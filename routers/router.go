@@ -48,6 +48,7 @@ func InitRouter(){
 		router2.GET("/admins",v1.GetAdmins)
 		router2.GET("/category",v1.GetCategory)
 		router2.GET("books",v1.GetBooks)
+		router2.GET("books/up",v1.GetUpbooks)
 		router2.GET("book/id",v1.GetBook)
 		router2.POST("login",v1.Login)
 		router2.GET("comment/:bookid",v1.GetComment)
