@@ -10,6 +10,7 @@ import (
 func InitRouter(){
 	//gin.SetMode(utils.AppMode)
 	r:=gin.Default()
+	r.Use(middleware.Cors())
 	r.Static("/statics","./statics")
 	router :=r.Group("api/v1")
 	router.Use(middleware.JwtAuth())
