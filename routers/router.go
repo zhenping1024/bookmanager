@@ -5,12 +5,24 @@ import (
 	"bookmanager/middleware"
 	"bookmanager/models"
 	"bookmanager/utils"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 func InitRouter(){
 	//gin.SetMode(utils.AppMode)
 	r:=gin.Default()
-	r.Use(middleware.Cors())
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://8.130.51.87:3030/","http://8.130.51.87:3000/"},
+		AllowMethods:     []string{"PUT", "GET","DELETE","POST"},
+		AllowHeaders:     []string{"Origin","Authorization", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		AllowOriginFunc: func(origin string) bool {
+			return true
+		},
+		MaxAge: 24 * time.Hour,
+	}))
 	r.Static("/statics","./statics")
 	router :=r.Group("api/v1")
 	router.Use(middleware.JwtAuth())
