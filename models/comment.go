@@ -11,6 +11,7 @@ type Comment struct{
 	gorm.Model
 	Commentuser string
 	Context		string
+	Head  string
 }
 
 //发布评论

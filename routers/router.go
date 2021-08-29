@@ -13,12 +13,12 @@ import (
 func InitRouter(){
 	//gin.SetMode(utils.AppMode)
 	r:=gin.Default()
-	r.LoadHTMLGlob("statics/dist/*.html")
+	r.LoadHTMLGlob("statics/*.html")
 	//r.LoadHTMLFiles("statics/dist/static/*/*")
 	r.Static("statics","./statics")
-	r.Static("/static","./statics/dist/static")
+	//r.Static("/static","./statics/dist/static")
 	//r.Static("static/admin/css","./statics/static")
-
+	r.StaticFS("/static",http.Dir("./static"))
 	r.GET("index",func(c*gin.Context){
 		c.HTML(http.StatusOK,"index.html",nil)
 	})

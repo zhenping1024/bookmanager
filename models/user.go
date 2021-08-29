@@ -332,3 +332,14 @@ func CheckBorrowed(u User,b Book)(int,error){
 	}
 	return 0,err
 }
+func SearchUrl(username string)(string){
+	var u User
+
+	username="%"+username+"%"
+	err:=DB.Where("username = ?",username).Find(&u).Error
+	if err!=nil{
+		fmt.Println(err)
+		return ""
+	}
+	return u.Head
+}

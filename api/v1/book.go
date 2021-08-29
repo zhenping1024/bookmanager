@@ -185,6 +185,7 @@ func SendComment(c*gin.Context){
 	comment.Context=context
 	comment.UpdatedAt=time.Now()
 	comment.ID=uint(bookid)
+	comment.Head=models.SearchUrl(token.Username)
 	fmt.Println(comment)
 	comment,err=models.PublishComment(bookid,comment)
 	c.JSON(http.StatusOK,gin.H{
