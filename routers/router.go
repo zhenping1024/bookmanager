@@ -14,7 +14,7 @@ func InitRouter(){
 	//gin.SetMode(utils.AppMode)
 	r:=gin.Default()
 	r.LoadHTMLGlob("statics/dist/*.html")
-	r.LoadHTMLFiles("statics/dist/static/")
+	//r.LoadHTMLFiles("statics/dist/static/*/*")
 	r.Static("statics","./statics")
 	r.Static("/static","./statics/dist/static")
 	//r.Static("static/admin/css","./statics/static")
