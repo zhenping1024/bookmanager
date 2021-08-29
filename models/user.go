@@ -334,8 +334,6 @@ func CheckBorrowed(u User,b Book)(int,error){
 }
 func SearchUrl(username string)(string){
 	var u User
-
-	username="%"+username+"%"
 	err:=DB.Where("username = ?",username).Find(&u).Error
 	if err!=nil{
 		fmt.Println(err)
