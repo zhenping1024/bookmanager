@@ -16,10 +16,10 @@ var (
 	DbPassWord string
 	DbName     string
 	RedisAddr  string
-	//AccessKey  string
-	//SecretKey  string
-	//Bucket     string
-	//QiniuSever string
+	AccessKey  string
+	SecretKey  string
+	Bucket     string
+	QiniuSever string
 )
 
 func init() {
@@ -29,7 +29,7 @@ func init() {
 	}
 	LoadServer(file)
 	LoadData(file)
-	//LoadQiniu(file)
+	LoadQiniu(file)
 }
 
 func LoadServer(file *ini.File) {
@@ -48,9 +48,9 @@ func LoadData(file *ini.File) {
 	RedisAddr=file.Section("redis").Key("Addr").MustString("localhost:6379")
 }
 
-//func LoadQiniu(file *ini.File) {
-//	AccessKey = file.Section("qiniu").Key("AccessKey").String()
-//	SecretKey = file.Section("qiniu").Key("SecretKey").String()
-//	Bucket = file.Section("qiniu").Key("Bucket").String()
-//	QiniuSever = file.Section("qiniu").Key("QiniuSever").String()
-//}
+func LoadQiniu(file *ini.File) {
+	AccessKey = file.Section("qiniu").Key("AccessKey").String()
+	SecretKey = file.Section("qiniu").Key("SecretKey").String()
+	Bucket = file.Section("qiniu").Key("Bucket").String()
+	QiniuSever = file.Section("qiniu").Key("QiniuServer").String()
+}

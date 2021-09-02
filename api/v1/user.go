@@ -79,7 +79,7 @@ func GetUsers(c*gin.Context){
 //编辑用户资料
 func EditUser(c*gin.Context){
 	var u models.User
-	var dst string
+	//var dst string
 	id,_:=strconv.Atoi(c.Param("id"))
 	//u.Username=c.PostForm("username")
 	u.Email=c.PostForm("email")
@@ -95,7 +95,7 @@ func EditUser(c*gin.Context){
 		})
 		return
 	}
-	file,e:=c.FormFile("imag")
+	file,fileHeader,e:=c.Request.FormFile("imag")
 	if e!=nil{
 		//c.JSON(200,gin.H{
 		//	"err":e,
@@ -104,21 +104,28 @@ func EditUser(c*gin.Context){
 		fmt.Println(e)
 
 	}else{
-		c.FormFile("imag")
-		time_int:=time.Now().Unix()
-		time_str:=strconv.FormatInt(time_int,10)
-		filename:=time_str+file.Filename
-		dst=path.Join("./statics/image/userimag",filename)
-		//获取存储路径
-		u.Head=dst
-		if err := c.SaveUploadedFile(file, dst);
-			err != nil {
-			//自己完成信息提示
-				fmt.Println("上传失败",err)
-			return
+		//c.FormFile("imag")
+		filesize:=fileHeader.Size
+		url,ee:=models.UpLoadFile(file,filesize)
+		if ee!=nil{
+			fmt.Println("上传错误")
 		}
-		fmt.Println("save",u)
-		fmt.Println("上传成功")
+		u.Head=url
+		fmt.Println(url,"urlshi")
+		//time_int:=time.Now().Unix()
+		//time_str:=strconv.FormatInt(time_int,10)
+		//filename:=time_str+file.Filename
+		//dst=path.Join("./statics/image/userimag",filename)
+		////获取存储路径
+		//u.Head=dst
+		//if err := c.SaveUploadedFile(file, dst);
+		//	err != nil {
+		//	//自己完成信息提示
+		//		fmt.Println("上传失败",err)
+		//	return
+		//}
+		//fmt.Println("save",u)
+		//fmt.Println("上传成功")
 	}
 	fmt.Println(u.Head,u)
 	u=models.EditUser(id,&u)

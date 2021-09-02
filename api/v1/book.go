@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -20,24 +19,30 @@ func AddBook(c*gin.Context){
 	u.Author=c.PostForm("author")
 	u.Introduce=c.PostForm("introduce")
 	u.Sum,_=strconv.Atoi(c.PostForm("sum"))
-	file,e:=c.FormFile("imag")
+	file,fileHeader,e:=c.Request.FormFile("imag")
 	if e!=nil{
 		fmt.Println(e)
 	}else{
-		c.FormFile("imag")
-		time_int:=time.Now().Unix()
-		time_str:=strconv.FormatInt(time_int,10)
-		filename:=time_str+u.BookName
-		dst:=path.Join("./statics/image/bookimage",filename)
-		//获取存储路径
-		u.BookImag=dst
-		if err := c.SaveUploadedFile(file, dst);
-			err != nil {
-			//自己完成信息提示
-			return
+		filesize:=fileHeader.Size
+		url,ee:=models.UpLoadFile(file,filesize)
+		if ee!=nil{
+			fmt.Println("上传错误")
 		}
-		fmt.Println("save",u)
-		fmt.Println("上传成功")
+		u.BookImag=url
+		//c.FormFile("imag")
+		//time_int:=time.Now().Unix()
+		//time_str:=strconv.FormatInt(time_int,10)
+		//filename:=time_str+u.BookName
+		//dst:=path.Join("./statics/image/bookimage",filename)
+		////获取存储路径
+		//u.BookImag=dst
+		//if err := c.SaveUploadedFile(file, dst);
+		//	err != nil {
+		//	//自己完成信息提示
+		//	return
+		//}
+		//fmt.Println("save",u)
+		//fmt.Println("上传成功")
 	}
 		u.BorrowSum=0
 		models.CreatBook(&u)
@@ -140,7 +145,7 @@ func EditBook(c*gin.Context){
 	u.Introduce=c.PostForm("introduce")
 	u.Sum,_=strconv.Atoi(c.PostForm("sum"))
 	//c.ShouldBind(&u)
-	file,e:=c.FormFile("imag")
+	file,fileHeader,e:=c.Request.FormFile("imag")
 	if e!=nil{
 		c.JSON(http.StatusOK,gin.H{
 			"status":e,
@@ -148,20 +153,26 @@ func EditBook(c*gin.Context){
 		})
 		fmt.Println(e)
 	}else{
-		c.FormFile("imag")
-		time_int:=time.Now().Unix()
-		time_str:=strconv.FormatInt(time_int,10)
-		filename:=time_str+u.BookName
-		dst:=path.Join("./statics/image/bookimage",filename)
-		//获取存储路径
-		u.BookImag=dst
-		if err := c.SaveUploadedFile(file, dst);
-			err != nil {
-			//自己完成信息提示
-			return
+		filesize:=fileHeader.Size
+		url,ee:=models.UpLoadFile(file,filesize)
+		if ee!=nil{
+			fmt.Println("上传错误")
 		}
-		fmt.Println("save",u)
-		fmt.Println("上传成功")
+		u.BookImag=url
+		//c.FormFile("imag")
+		//time_int:=time.Now().Unix()
+		//time_str:=strconv.FormatInt(time_int,10)
+		//filename:=time_str+u.BookName
+		//dst:=path.Join("./statics/image/bookimage",filename)
+		////获取存储路径
+		//u.BookImag=dst
+		//if err := c.SaveUploadedFile(file, dst);
+		//	err != nil {
+		//	//自己完成信息提示
+		//	return
+		//}
+		//fmt.Println("save",u)
+		//fmt.Println("上传成功")
 	}
 		models.EditBook(id,&u)
 	c.JSON(http.StatusOK,gin.H{
