@@ -29,20 +29,6 @@ func AddBook(c*gin.Context){
 			fmt.Println("上传错误")
 		}
 		u.BookImag=url
-		//c.FormFile("imag")
-		//time_int:=time.Now().Unix()
-		//time_str:=strconv.FormatInt(time_int,10)
-		//filename:=time_str+u.BookName
-		//dst:=path.Join("./statics/image/bookimage",filename)
-		////获取存储路径
-		//u.BookImag=dst
-		//if err := c.SaveUploadedFile(file, dst);
-		//	err != nil {
-		//	//自己完成信息提示
-		//	return
-		//}
-		//fmt.Println("save",u)
-		//fmt.Println("上传成功")
 	}
 		u.BorrowSum=0
 		models.CreatBook(&u)
@@ -159,20 +145,6 @@ func EditBook(c*gin.Context){
 			fmt.Println("上传错误")
 		}
 		u.BookImag=url
-		//c.FormFile("imag")
-		//time_int:=time.Now().Unix()
-		//time_str:=strconv.FormatInt(time_int,10)
-		//filename:=time_str+u.BookName
-		//dst:=path.Join("./statics/image/bookimage",filename)
-		////获取存储路径
-		//u.BookImag=dst
-		//if err := c.SaveUploadedFile(file, dst);
-		//	err != nil {
-		//	//自己完成信息提示
-		//	return
-		//}
-		//fmt.Println("save",u)
-		//fmt.Println("上传成功")
 	}
 		models.EditBook(id,&u)
 	c.JSON(http.StatusOK,gin.H{
@@ -217,4 +189,22 @@ func GetComment(c*gin.Context){
 		"sum":sum,
 	})
 }
+//上传PDF
+func UpPDF(c*gin.Context){
+	id,_:=strconv.Atoi(c.Param("id"))
+	var url string
+	file,fileHeader,e:=c.Request.FormFile("imag")
+	if e!=nil{
+		fmt.Println(e)
+	}else{
+		filesize:=fileHeader.Size
+		url,e=models.UpLoadBook(file,filesize,id)
+	}
 
+	c.JSON(http.StatusOK,gin.H{
+		"status":"创建成功",
+		"data":url,
+		"message":fmt.Sprint(e),
+	})
+
+}

@@ -11,13 +11,9 @@ import (
 	"time"
 )
 func InitRouter(){
-	//gin.SetMode(utils.AppMode)
 	r:=gin.Default()
 	r.LoadHTMLGlob("statics/*.html")
-	//r.LoadHTMLFiles("/static/*/*")
 	r.Static("/static","./static")
-	//r.Static("/static","./statics/*/*")
-	//r.Static("/static","./static")
 	r.StaticFS("/statics",http.Dir("./statics"))
 	r.GET("index",func(c*gin.Context){
 		c.HTML(http.StatusOK,"index.html",nil)
@@ -33,7 +29,6 @@ func InitRouter(){
 		},
 		MaxAge: 24 * time.Hour,
 	}))
-
 	router :=r.Group("api/v1")
 	router.Use(middleware.JwtAuth())
 	{
@@ -78,6 +73,7 @@ func InitRouter(){
 		router2.POST("login",v1.Login)
 		router2.GET("comment/:bookid",v1.GetComment)
 		router2.GET("admin/msg",v1.GetMsg)
+		router2.POST("upload/:id",v1.UpPDF)
 	}
 	go func() {
 		models.GetMsg()

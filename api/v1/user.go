@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -18,7 +17,6 @@ func GetUser( c *gin.Context){
 	authString := c.Request.Header.Get("Authorization")
 	kv := strings.Split(authString, " ")
 	tokenString := kv[1]
-	// Parse token
 	token, err := middleware.ParseJwt(tokenString)
 	if err!=nil{
 		fmt.Println(err)
@@ -37,7 +35,6 @@ func AddUser(c*gin.Context){
 	u.Email=c.PostForm("email")
 	u.Phone=c.PostForm("phone")
 	u.Role=2
-	//u.Password=c.ShouldBindJSON(&u)
 	fmt.Println(u)
 	err:=models.CheckUser(u.Username)
 	if err!=nil{
@@ -79,14 +76,11 @@ func GetUsers(c*gin.Context){
 //编辑用户资料
 func EditUser(c*gin.Context){
 	var u models.User
-	//var dst string
 	id,_:=strconv.Atoi(c.Param("id"))
-	//u.Username=c.PostForm("username")
 	u.Email=c.PostForm("email")
 	u.Phone=c.PostForm("phone")
 	u.RealName=c.PostForm("realname")
 	u.Introduce=c.PostForm("introduce")
-	//c.ShouldBind(&u)
 	er:=models.CheckUser(u.Username)
 	if er!=nil{
 		c.JSON(200,gin.H{
@@ -97,14 +91,8 @@ func EditUser(c*gin.Context){
 	}
 	file,fileHeader,e:=c.Request.FormFile("imag")
 	if e!=nil{
-		//c.JSON(200,gin.H{
-		//	"err":e,
-		//	"message":"图片上传错误",
-		//})
 		fmt.Println(e)
-
 	}else{
-		//c.FormFile("imag")
 		filesize:=fileHeader.Size
 		url,ee:=models.UpLoadFile(file,filesize)
 		if ee!=nil{
@@ -112,20 +100,6 @@ func EditUser(c*gin.Context){
 		}
 		u.Head=url
 		fmt.Println(url,"urlshi")
-		//time_int:=time.Now().Unix()
-		//time_str:=strconv.FormatInt(time_int,10)
-		//filename:=time_str+file.Filename
-		//dst=path.Join("./statics/image/userimag",filename)
-		////获取存储路径
-		//u.Head=dst
-		//if err := c.SaveUploadedFile(file, dst);
-		//	err != nil {
-		//	//自己完成信息提示
-		//		fmt.Println("上传失败",err)
-		//	return
-		//}
-		//fmt.Println("save",u)
-		//fmt.Println("上传成功")
 	}
 	fmt.Println(u.Head,u)
 	u=models.EditUser(id,&u)
@@ -169,38 +143,24 @@ func CreatAdmin(c*gin.Context){
 			"message":errors.New("无权限"),
 		})
 	}
-	//var u models.User
 	u2.Username=c.PostForm("username")
 	u2.Password=c.PostForm("password")
 	u2.Email=c.PostForm("email")
 	u2.Phone=c.PostForm("phone")
 	u2.Role=1
-	//u.Password=c.ShouldBindJSON(&u)
-	var dst string
-	file,e:=c.FormFile("imag")
+	file,fileHeader,e:=c.Request.FormFile("imag")
 	if e!=nil{
-		//c.JSON(200,gin.H{
-		//	"err":e.Error(),
-		//})
 		fmt.Println(e.Error())
 	}else{
-		c.FormFile("imag")
-		time_int:=time.Now().Unix()
-		time_str:=strconv.FormatInt(time_int,10)
-		filename:=time_str+u2.Username
-		dst=path.Join("./statics/image/userimag",filename)
-		//获取存储路径
-		u2.Head=dst
-		if err := c.SaveUploadedFile(file, dst);
-			err != nil {
-			//自己完成信息提示
-			fmt.Println("上传失败",err)
-			return
+		filesize:=fileHeader.Size
+		url,ee:=models.UpLoadFile(file,filesize)
+		if ee!=nil{
+			fmt.Println("上传错误")
 		}
+		u2.Head=url
 		fmt.Println("save",u2)
 		fmt.Println("上传成功")
 	}
-	//fmt.Println(u)
 	err=models.CheckUser(u2.Username)
 	if err!=nil{
 		fmt.Println(err)

@@ -21,6 +21,7 @@ BorrowSum int`json:"borrowsum"`
 Users []User`gorm:"many2many:user_book"`
 Author string `json:"author"`
 Introduce string `introduce`
+Bookurl string	`bookurl`
 }
 //新增书籍
 func CreatBook(data *Book)error{
