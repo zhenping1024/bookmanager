@@ -33,7 +33,7 @@ func InitRouter(){
 	r.GET("index",func(c*gin.Context){
 		c.HTML(http.StatusOK,"index.html",nil)
 	})
-	router :=r.Group("api/api/v1")
+	router :=r.Group("api/v1")
 	router.Use(middleware.JwtAuth())
 	{
 		//用户模块模块
@@ -61,7 +61,7 @@ func InitRouter(){
 		router.POST("comment/:bookid",v1.SendComment)
 		router.POST("toadmin",v1.ToAdmin)
 	}
-	router2 :=r.Group("api/api/v1")
+	router2 :=r.Group("api/v1")
 	{
 		router2.POST("user/search",v1.SearchUser)
 		router2.POST("book/search",v1.SearchBook)
