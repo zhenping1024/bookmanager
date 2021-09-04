@@ -370,18 +370,43 @@ func SearchUserBook(c*gin.Context){
 }
 //管理员接受消息
 func GetMsg(c*gin.Context){
-	fmt.Println(models.Ms.Sum, len(models.Ms.M))
-	if models.Ms.Sum< len(models.Ms.M){
-		models.Ms.Sum= len(models.Ms.M)
+
+	authString := c.Request.Header.Get("Authorization")
+
+	kv := strings.Split(authString, " ")
+	if len(kv) != 2 || kv[0] != "Bearer" {
+		//result := models.UnauthorizedResult()
+		c.JSON(200, gin.H{
+			"status":"错误",
+			"message":"Token错误",
+		})
+		c.Abort()
+		return
+	}
+	tokenString := kv[1]
+	// Parse token
+	token, _:= middleware.ParseJwt(tokenString)
+	role:=models.CheckAdmin(token.Username)
+	if role>1{
+		m,_,_:=models.GetMsgs(token.Username)
 		c.JSON(http.StatusOK,gin.H{
-			"message":models.Ms.M,
+			"message":m,
 			"status":1,
 		})
 	}else{
-		c.JSON(http.StatusOK,gin.H{
-			"message":models.Ms.M,
-			"status":0,
-		})
+		fmt.Println(models.Ms.Sum, len(models.Ms.M))
+		if models.Ms.Sum< len(models.Ms.M){
+			models.Ms.Sum= len(models.Ms.M)
+			c.JSON(http.StatusOK,gin.H{
+				"message":models.Ms.M,
+				"status":1,
+			})
+		}else{
+			c.JSON(http.StatusOK,gin.H{
+				"message":models.Ms.M,
+				"status":0,
+			})
+		}
 	}
 
 }

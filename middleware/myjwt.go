@@ -15,57 +15,6 @@ type MyClaims struct{
 	Username string `json:"username"`
 	jwt.StandardClaims
 }
-////生成token
-//func SetToken (username string,password string)string{
-//	expireTime:=time.Now().Add(10*time.Hour)
-//	setclaims:=MyClaims{
-//		Username: password,
-//		Password: password,
-//		StandardClaims:jwt.StandardClaims{
-//			ExpiresAt: expireTime.Unix(),
-//			Issuer: "book",
-//		},
-//	}
-//	reqClaims:=jwt.NewWithClaims(jwt.SigningMethodHS256,setclaims)
-//	token,err:=reqClaims.SignedString(TwtKey)
-//	if err!=nil{
-//		return ""
-//	}
-//	return token
-//}
-////验证token
-//func CheckToken(Token string)*MyClaims{
-//	settoken,_:=jwt.ParseWithClaims(Token,&MyClaims{},func(token *jwt.Token)(interface{},error){
-//		return TwtKey,nil
-//	})
-//	if key,ok :=settoken.Claims.(*MyClaims);ok &&settoken.Valid{
-//		return key
-//	}else{
-//		return nil
-//	}
-//}
-////jwt中间件
-//func JwtToken() gin.HandlerFunc{
-//	return func(c*gin.Context){
-//		tokenHeader:=c.Request.Header.Get("Authorization")
-//		code:=2001
-//		if tokenHeader==""{
-//			code=2002
-//		}
-//		checktoken:=strings.SplitN(tokenHeader," ",2)
-//		if len(checktoken)!=2&&checktoken[0]!="Bearer"{
-//			code=2003
-//			c.Abort()
-//		}
-//		key:=CheckToken(checktoken[1])
-//
-//		//c.JSON(http.StatusOK,gin.H{
-//		//
-//		//})
-//		c.Set("username",key.Username)
-//		c.Next()
-//	}
-//}
 //初始化创建Token
 func InitJWT( uname string)(s string){
 	mySigningKey:=[]byte("usertest")
@@ -101,6 +50,7 @@ func ParseJwt(s string)(claims *MyClaims,err error){
 		return t.Claims.(*MyClaims),nil
 	}
 }
+//登陆验证
 func JwtAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
@@ -137,7 +87,6 @@ func JwtAuth() gin.HandlerFunc {
 		c.Next()
 	}
 }
-
 //管理员权限中间件
 func AdminAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -169,6 +118,11 @@ func AdminAuth() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+
+
+
+
 func Cors() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		method := c.Request.Method

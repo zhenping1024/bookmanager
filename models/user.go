@@ -58,26 +58,10 @@ func TakeUserMsg(user User )UserMsg{
 	msg.Head=user.Head
 	return msg
 }
-func TakeUsesrMsg(user []User )[]UserMsg{
-	var msg []UserMsg
-	for i:=0;i< len(user);i++{
-		msg[i].Role= user[i].Role
-		msg[i].Phone=user[i].Phone
-		msg[i].Email=user[i].Email
-		msg[i].Username=user[i].Username
-		msg[i].RealName=user[i].RealName
-		msg[i].Books=user[i].Books
-		msg[i].BookSum=user[i].BookSum
-	}
-
-	return msg
-}
 //验证管理员权限
 func CheckAdmin(username string)int{
 	var user User
 	err:=DB.Where("username = ?",username).First(&user).Error
-	//log.Fatal(user)
-	fmt.Println(user)
 	if err!=nil{
 		fmt.Println("权限验证错误",err)
 		return -1
@@ -88,7 +72,6 @@ func CheckAdmin(username string)int{
 func CheckLogin(username string,password string)(User,error){
 	var user User
 	err:=DB.Where("username = ?",username).First(&user).Error
-	//log.Fatal(user)
 	fmt.Println(user)
 	if err!=nil{
 		return User{},err
@@ -111,7 +94,6 @@ func CheckUser(name string)error{
 	var u User
 	DB.Select("id").Where("username = ?",name).First(&u)
 	if u.ID>0{
-
 		err:=errors.New("用户已存在")
 		return err
 	}
@@ -120,7 +102,6 @@ func CheckUser(name string)error{
 //新增用户
 func CreatUser(data *User)error{
 	data.Password=ScryptPW(data.Password)
-	fmt.Println(data)
 	err:=DB.Create(&data).Error
 	if err!=nil{
 		log.Fatal(err)
@@ -134,7 +115,6 @@ func GteUsers(PageSize int,Pagenum int)([]User,int){
 	var sum int
 	DB.Where("role = ?",2).Find(&users).Count(&sum)
 	err:=DB.Limit(PageSize).Offset((Pagenum-1)*PageSize).Where("role = ?",2).Find(&users).Error
-	fmt.Println("一共有",sum)
 	if err!=nil{
 		return nil,-1
 	}
@@ -197,7 +177,6 @@ func EditUser(id int,u *User)User{
 		Email: u.Email,
 		Head: u.Head,
 	}).Error
-	fmt.Sprint("cuowu",err)
 	if err!=nil{
 		fmt.Sprint(err)
 	}
@@ -243,7 +222,6 @@ func GteAdmins(PageSize int,Pagenum int)([]User,int){
 func Borrowedbooks(PageSize int,Pagenum int,username string)([]Book,int){
 	var u User
 	var books []Book
-	//u.Username=username
 	DB.Where("username = ?",username).First(&u)
 	err:=DB.Debug().Limit(PageSize).Offset((Pagenum-1)*PageSize).Model(&u).Association("Books").Find(&books).Error
 	if err!=nil{
@@ -258,9 +236,7 @@ func Borrowbook(username string,bookname int)(Book,error){
 	var u User
 	var b Book
 	DB.Where("username = ?",username).First(&u)
-	fmt.Println(u)
 	DB.Debug().Where("id = ?",bookname).First(&b)
-	fmt.Println(b)
 	status,_:=CheckBorrowed(u,b)
 	if status==1{
 		return Book{},errors.New("该书正在借阅")
@@ -272,9 +248,6 @@ func Borrowbook(username string,bookname int)(Book,error){
 				return Book{},nil
 			}
 			DB.Model(&u).Update("book_sum",u.BookSum+1)
-			//fmt.Println(u)
-			//b.Sum--
-			//b.BorrowSum++
 			err=DB.Model(&b).Select("sum","borrow_sum").Updates(map[string]interface{}{
 				"sum":b.Sum-1,
 				"borrow_sum":b.BorrowSum+1,
@@ -299,9 +272,7 @@ func ReturnBook(username string,bookname int)(Book,error){
 	var u User
 	var b Book
 	DB.Where("username = ?",username).First(&u)
-	fmt.Println(u)
 	DB.Debug().Where("id = ?",bookname).First(&b)
-	fmt.Println(b)
 		err=DB.Debug().Model(&u).Association("Books").Delete(&b).Error
 		if err!=nil{
 			fmt.Println(err.Error())
@@ -324,7 +295,6 @@ func ReturnBook(username string,bookname int)(Book,error){
 func CheckBorrowed(u User,b Book)(int,error){
 	var books []Book
 	err=DB.Model(&u).Association("Books").Find(&books).Error
-	fmt.Println("checkborrow",err)
 	for i:=0;i< len(books);i++{
 		if b.ID==books[i].ID{
 			return 1,err

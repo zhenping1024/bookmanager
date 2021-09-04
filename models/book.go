@@ -9,11 +9,9 @@ import (
 
 type Book struct{
 gorm.Model
-//Category Category	`gorm:foreignkey:Cid`
 BookName string `json:"bookname" form:"bookname"`
 BookPrice string `json:"price"`
 BookImag string `json:"imag" form:"imag"`
-//Cid int
 BookType string`json:"booktype" form:"booktype"`
 State string `json:"state" gorm:"default:'no'"`
 Sum int `json:"sum" form;"sum"`
@@ -102,7 +100,6 @@ func DeleteBook(id int)int{
 //编辑书籍
 func EditBook(id int,u *Book){
 	var book Book
-	//maps["state"]=u.State
 	err:=DB.Model(&book).Where("id = ?",id).Updates(Book{
 		BookName: u.BookName,
 		Sum: u.Sum,
@@ -117,10 +114,8 @@ func SearchBook(bookname string,pagesize int,pagenum int)([]Book,error,int){
 	var u []Book
 	bookname="%"+bookname+"%"
 	var sum int
-	fmt.Println(bookname)
 	DB.Where("book_name LIKE ?",bookname).Find(&u).Count(&sum)
 	err:=DB.Limit(pagesize).Offset((pagenum-1)*pagesize).Where("book_name LIKE ?",bookname).Find(&u).Error
-	fmt.Println("一共有",sum)
 	if err!=nil{
 		fmt.Println(err)
 		return []Book{},err,0
@@ -136,6 +131,5 @@ func SearchBorrowedBook(username string,bookname string,pagesize int,pagenum int
 	DB.Where("username = ?",username).First(&u)
 	sum=DB.Model(&u).Preload("Books").Where("book_name LIKE ?",bookname).Association("Books").Find(&books).Count()
 	DB.Limit(pagesize).Offset((pagenum-1)*pagesize).Debug().Model(&u).Preload("Books").Where("book_name LIKE ?",bookname).Association("Books").Find(&books)
-	fmt.Println("chadao",sum)
 	return books,err,sum
 }

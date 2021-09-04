@@ -44,7 +44,6 @@ func Upbook(c*gin.Context){
 	var u models.Book
 	id,_:=strconv.Atoi(c.Param("id"))
 	c.ShouldBind(&u)
-
 	models.UpBook(id,&u)
 	c.JSON(http.StatusOK,gin.H{
 		"status":u,
@@ -56,7 +55,6 @@ func Downbook(c*gin.Context){
 	var u models.Book
 	id,_:=strconv.Atoi(c.Param("id"))
 	c.ShouldBind(&u)
-
 	models.DownBook(id,&u)
 	c.JSON(http.StatusOK,gin.H{
 		"status":u,

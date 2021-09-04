@@ -19,6 +19,6 @@ func InitDb(){
 		fmt.Println("连接数据库失败",err)
 	}
 	DB.SingularTable(true)
-	DB.AutoMigrate(&User{},&Category{},&Book{})
+	DB.AutoMigrate(&User{},&Book{})
 	//DB.Close()
 }

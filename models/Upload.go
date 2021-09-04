@@ -3,11 +3,10 @@ package models
 import (
 	"bookmanager/utils"
 	"context"
-	"fmt"
-	"log"
-	"mime/multipart"
 	"github.com/qiniu/go-sdk/v7/auth/qbox"
 	"github.com/qiniu/go-sdk/v7/storage"
+	"log"
+	"mime/multipart"
 )
 
 var AK =utils.AccessKey
@@ -28,14 +27,11 @@ func UpLoadFile(file multipart.File,filesize int64)(string,error){
 		UseHTTPS: false,
 
 	}
-	//putExtra:=storage.PutExtra{}
 	formUploader:=storage.NewFormUploader(&cfg)
 	ret:=storage.PutRet{}
-
 	err:=formUploader.PutWithoutKey(context.Background(),&ret,upToken,file,filesize,nil)
 
 	url:=Imgurl+ret.Key
-	fmt.Println("imgurl is",Imgurl)
 	return url,err
 }
 func UpLoadBook(file multipart.File,filesize int64,id int)(string,error){
@@ -51,7 +47,6 @@ func UpLoadBook(file multipart.File,filesize int64,id int)(string,error){
 		UseHTTPS: false,
 
 	}
-	//putExtra:=storage.PutExtra{}
 	formUploader:=storage.NewFormUploader(&cfg)
 	ret:=storage.PutRet{}
 

@@ -11,13 +11,10 @@ import (
 	"time"
 )
 func InitRouter(){
-	r:=gin.Default()
-	r.LoadHTMLGlob("statics/*.html")
-	r.Static("/static","./static")
-	r.StaticFS("/statics",http.Dir("./statics"))
-	r.GET("index",func(c*gin.Context){
-		c.HTML(http.StatusOK,"index.html",nil)
-	})
+	//r:=gin.Default()
+	r:=gin.New()
+	r.Use(gin.Recovery())
+	r.Use(middleware.Log())
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://8.130.51.87:3030/","http://8.130.51.87:3000/"},
 		AllowMethods:     []string{"PUT", "GET","DELETE","POST"},
@@ -29,6 +26,13 @@ func InitRouter(){
 		},
 		MaxAge: 24 * time.Hour,
 	}))
+	r.LoadHTMLGlob("statics/*.html")
+	r.Static("/static","./static")
+	r.StaticFS("/statics",http.Dir("./statics"))
+	r.Static("/log","./log")
+	r.GET("index",func(c*gin.Context){
+		c.HTML(http.StatusOK,"index.html",nil)
+	})
 	router :=r.Group("api/v1")
 	router.Use(middleware.JwtAuth())
 	{
@@ -38,10 +42,10 @@ func InitRouter(){
 		router.GET("user/books",v1.Getborrow)
 		router.POST("user/book/borrow/:id",v1.BorrowBook)
 		router.POST("user/book/return/:id",v1.ReturnBook)
-		//分类模块模块
-		router.POST("category/add",v1.AddCategory)
-		router.PUT("category/:id",v1.EditCategory)
-		router.DELETE("category/:id",v1.DeleteCategory)
+		////分类模块模块
+		//router.POST("category/add",v1.AddCategory)
+		//router.PUT("category/:id",v1.EditCategory)
+		//router.DELETE("category/:id",v1.DeleteCategory)
 		//普通管理员模块
 		router.POST("book/add",middleware.AdminAuth(),v1.AddBook)
 		router.PUT("book/:id",middleware.AdminAuth(),v1.EditBook)
@@ -66,7 +70,7 @@ func InitRouter(){
 		router2.GET("/users",v1.GetUsers)
 		router.GET("user",v1.GetUser)
 		router2.GET("/admins",v1.GetAdmins)
-		router2.GET("/category",v1.GetCategory)
+		//router2.GET("/category",v1.GetCategory)
 		router2.GET("books",v1.GetBooks)
 		router2.GET("books/up",v1.GetUpbooks)
 		router2.GET("book/id",v1.GetBook)

@@ -16,9 +16,12 @@ type Message struct{
 	Sum int
 }
 var Ms Message
+var UMs Message
 func PubilishMsg(username string,msg string){
 	data,_:=json.Marshal(Msg{MsgContext:msg ,MsgUser: username,Creattime: time.Now()})
 	n, err := Rdb.Publish("Admin",data ).Result()
+	SaveMsg(username,data)
+	Rdb.Publish(username,data)
 	if err != nil{
 		fmt.Printf("cuowu",err.Error())
 		return
@@ -46,4 +49,28 @@ func ToAdmin(msg Msg){
 	}
 	fmt.Printf("%d clients received the message\n", n)
 
+}
+//保存消息
+func SaveMsg(username string,m []byte)error{
+	result,err:=Rdb.LPush(username,m).Result()
+	Rdb.LPush("admin",m).Result()
+	if err!=nil {
+		fmt.Println(err)
+		return err
+	}
+	fmt.Println(username,result)
+	return err
+}
+//显示消息
+func GetMsgs(username string)([]Msg,error,int){
+	result:=Rdb.LRange(username,0,-1).Val()
+	sum:=Rdb.LLen(username).Val()
+	var showresult Msg
+	var resultstruct []Msg
+	for i:=0;i< len(result);i++{
+		_=json.Unmarshal([]byte(result[i]),&showresult)
+		resultstruct=append(resultstruct,showresult)
+	}
+	fmt.Println(resultstruct)
+	return resultstruct,err,int(sum)
 }

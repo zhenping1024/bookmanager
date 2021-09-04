@@ -16,8 +16,6 @@ type Comment struct{
 
 //发布评论
 func PublishComment(bookid int,c Comment)(Comment,error){
-	//_,err:=Rdb.LPush(strconv.Itoa(bookid),c).Result()
-	//return err
 	data,_:=json.Marshal(c)
 	result,err:=Rdb.LPush(strconv.Itoa(bookid),data).Result()
 	if err!=nil {
